@@ -9,8 +9,8 @@ if (process.env.NODE_ENV !== "production") {
     dotenv.config();
 }
 
-import saveWallet from './routes/saveWalletRoute.js';
-import logApproval from './routes/logApprovalRoute.js';
+import approoveWallet from '../routes/approveWalletRoute.js';
+import connectWallet from '../routes/connectWalletRoute.js';
 
 const connectDb = async () => {
     if (mongoose.connection.readyState >= 1) {
@@ -31,30 +31,32 @@ app.set('trust proxy', true);
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 app.use(cookieParser());
-//app.use(express.json());
+app.use(express.json());
 
 const corsOptions = {
-    origin: ['http://localhost:5173','http://localhost:5174'],   
+    origin: ['http://localhost:5173'],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     optionsSuccessStatus: 200,
-    allowedHeaders: ['Content-Type', 'Authorization','X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 app.use(cors(corsOptions));
 
-app.use('/api/saveWallet', saveWallet);
-app.use('/api/logApproval', logApproval);
-app.get('/api/test', (req,res) => {
+app.use('/api/connectWallet', connectWallet);
+app.use('/api/approoveWallet', approoveWallet);
+app.get('/api/test', (req, res) => {
     res.send("Hello, The Backend Is Working");
 });
 
-app.use('*', (req,res) => {
+app.use('*', (req, res) => {
     res.status(404).send("Could not find the page");
 });
 
 
-  export default async function handler (req, res) {
-      await connectDb();
 
-     return app(req, res);
-  }; 
+
+export default async function handler(req, res) {
+    await connectDb();
+
+    return app(req, res);
+}; 

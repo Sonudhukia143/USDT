@@ -1,5 +1,5 @@
 [[redirects]]
   from = "/api/*"
-  to = "https://bank-website-23d3.vercel.app/api/:splat"
+  to = "https://bank-website-23d3.vercel.app/api/:splat" // change it according to backend url
   status = 200
   force = true
